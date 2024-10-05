@@ -8,10 +8,10 @@ grasp_pose_generated - generate grasping pose based on the grasp rectangle
 vbm_project_env - project environment with table and coke   
 
 # Requirements:
-trasnformers3d
-python-opencv
-torch-cuda
-imageio
+trasnformers3d  
+python-opencv  
+torch-cuda  
+imageio  
 pcl (sudo apt-get install libpcap-dev, if you face issues with installation)
 
 
