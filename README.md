@@ -2,10 +2,10 @@
 Project repo for Vision Based Manipulation course @WPI
 
 # Package Details:
-grasp_gen_interface - define the srv file \\
-grasp_gen_service - create a service to load the DL model and provide grasp rectangle when requested
-grasp_pose_generated - generate grasping pose based on the grasp rectangle
-vbm_project_env - project environment with table and coke 
+grasp_gen_interface - define the srv file  
+grasp_gen_service - create a service to load the DL model and provide grasp rectangle when requested  
+grasp_pose_generated - generate grasping pose based on the grasp rectangle  
+vbm_project_env - project environment with table and coke   
 
 # Requirements:
 trasnformers3d
