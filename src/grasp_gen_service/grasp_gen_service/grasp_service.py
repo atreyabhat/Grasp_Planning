@@ -16,7 +16,7 @@ from std_msgs.msg import Float32MultiArray, Float64MultiArray
 class GenerativeGraspService(Node):
     def __init__(self):
         super().__init__('generative_grasp_service')
-        self.srv = self.create_service(GraspGen, 'gen_gr_grasp', self.generate_grasp_callback)
+        self.srv = self.create_service(GraspGen, 'generate_grasp', self.generate_grasp_callback)
 
         # Subscriber to rgb image
         self.image_subscriber = self.create_subscription(
