@@ -38,6 +38,9 @@ pcl (sudo apt-get install libpcap-dev, if you face issues with installation)
 
 6) Service call:
    ```bash
-   ros2 service call /gen_gr_grasp grasp_gen_interface/srv/GraspGen input:\ 'generate_grasp'\ 
+   ros2 service call /generate_grasp grasp_gen_interface/srv/GraspGen input:\ 'generate_grasp_grconvnet'\
+or 
+   ```bash
+   ros2 service call /generate_grasp grasp_gen_interface/srv/GraspGen input:\ 'generate_grasp_ggcnn'\
    
    
