@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 class GRConvNet_Grasp():
 
     def __init__(self):
-        model_path = '/home/vishwas/Downloads/grcnn_robotic-grasping-master/trained-models/cornell-randsplit-rgbd-grconvnet3-drop1-ch32/epoch_19_iou_0.98'
+        model_path = '/home/vishwas/RBE595-vbm/src/grasp_gen_service/grasp_gen_service/trained_models/GRConvNet/epoch_19_iou_0.98'
         self.network = torch.load(model_path)
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.network.to(self.device)
@@ -35,10 +35,13 @@ class GRConvNet_Grasp():
         return img[y1:y2, x1:x2]
 
     def process_data(self, rgb_img, depth_img):
-        cv2.imwrite('rgb_img.png', rgb_img)
-        cv2.imwrite('depth_img.png', depth_img)
+        # cv2.imwrite('rgb_img.png', rgb_img)
+        # cv2.imwrite('depth_img.png', depth_img)
         rgb_img = self.center_crop(rgb_img, 224, 224)
         depth_img = self.center_crop(depth_img, 224, 224)
+        # resize rgb image to 224x224
+        # rgb_img = cv2.resize(rgb_img, (224, 224))
+        # depth_img = cv2.resize(depth_img, (224, 224))
         depth_img = self.process_depth_image(depth_img)
 
         rgb_img = cv2.resize(rgb_img, (224, 224))

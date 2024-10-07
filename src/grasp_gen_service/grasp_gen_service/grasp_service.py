@@ -6,17 +6,17 @@ from rclpy.node import Node
 import cv2
 import numpy as np
 from grasp_gen_interface.srv import GraspGen
+from . import ggcnn_process
 from . import grconvnet_process
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import matplotlib.pyplot as plt
 from std_msgs.msg import Float32MultiArray, Float64MultiArray
 
-class GrConvNetService(Node):
+class GenerativeGraspService(Node):
     def __init__(self):
-        super().__init__('grconvnet_service')
+        super().__init__('generative_grasp_service')
         self.srv = self.create_service(GraspGen, 'gen_gr_grasp', self.generate_grasp_callback)
-        self.get_logger().info('GrConvNet Service has been started')
 
         # Subscriber to rgb image
         self.image_subscriber = self.create_subscription(
@@ -36,16 +36,28 @@ class GrConvNetService(Node):
         self.depth_image_processed_publisher = self.create_publisher(Image, '/vbm/depth/image_raw', 10)
         
         self.grconvnet = grconvnet_process.GRConvNet_Grasp()
-        
+        self.ggcnn = ggcnn_process.GGCNN_Grasp()
         
         self.rgb_image = None
         self.depth_image = None
 
         self.br = CvBridge()
+        self.get_logger().info('Generative Grasp Service has been started')
 
     def generate_grasp_callback(self, request, response):
-        if request.input == "generate_grasp":
+        if request.input == "generate_grasp_grconvnet":
             gs, depth_img_processed = self.grconvnet.process_data(self.rgb_image, self.depth_image)
+            gs = Float32MultiArray(data=gs)
+            self.get_logger().info('Grasp generated')
+            response.grasp = gs
+            self.grasp_rectangle_publisher.publish(gs)
+            self.depth_image_processed_publisher.publish(self.br.cv2_to_imgmsg(depth_img_processed))
+
+            plt.imshow(depth_img_processed)
+            plt.show()
+
+        elif request.input == "generate_grasp_ggcnn":
+            gs, depth_img_processed = self.ggcnn.process_data(self.rgb_image, self.depth_image)
             gs = Float32MultiArray(data=gs)
             self.get_logger().info('Grasp generated')
             response.grasp = gs
@@ -74,11 +86,11 @@ class GrConvNetService(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    grconvnet_service = GrConvNetService()
+    generative_grasp_service = GenerativeGraspService()
 
-    rclpy.spin(grconvnet_service)
+    rclpy.spin(generative_grasp_service)
 
-    grconvnet_service.destroy_node()
+    generative_grasp_service.destroy_node()
     rclpy.shutdown()
 
 
