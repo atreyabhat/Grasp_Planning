@@ -28,12 +28,12 @@ def generate_launch_description():
     spawn_entity = Node(package='gazebo_ros', executable="spawn_entity.py",
                         arguments=['-file',simulation_urdf_path,
                                     '-entity','camera',
-                                    '-x','0.3',
-                                    '-y','0',
-                                    '-z','0.8',
-                                    '-R','0',
-                                    '-Y','3.14',
-                                    '-P','0.6'],
+                                    '-x', '0',  # Position along X-axis
+                               '-y', '0',  # Position along Y-axis
+                               '-z', '1.1',  # Position along Z-axis (height)
+                               '-R', '0',  # Roll angle
+                               '-P', '1.57',  # Pitch angle
+                               '-Y', '0'],  # Yaw angle],
                         output='both' )
 
     node_robot_state_publisher = Node(
