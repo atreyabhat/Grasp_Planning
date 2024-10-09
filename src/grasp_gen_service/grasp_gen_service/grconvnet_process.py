@@ -18,12 +18,16 @@ import matplotlib.pyplot as plt
 class GRConvNet_Grasp():
 
     def __init__(self):
+        # model_path = '/home/vishwas/RBE595-vbm/src/grasp_gen_service/grasp_gen_service/trained_models/jacquard-d-grconvnet3-drop0-ch32/epoch_50_iou_0.94'
         model_path = '/home/vishwas/RBE595-vbm/src/grasp_gen_service/grasp_gen_service/trained_models/GRConvNet/epoch_19_iou_0.98'
         self.network = torch.load(model_path)
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.network.to(self.device)
 
     def center_crop(self, img, crop_width, crop_height):
+        """
+        Center crop the image
+        """
         height, width = img.shape[:2]
         center_x, center_y = width // 2, height // 2
 
@@ -35,18 +39,29 @@ class GRConvNet_Grasp():
         return img[y1:y2, x1:x2]
 
     def process_data(self, rgb_img, depth_img):
-        # cv2.imwrite('rgb_img.png', rgb_img)
-        # cv2.imwrite('depth_img.png', depth_img)
+        """
+        Process the input data using GRConvNet
+        Input:
+            rgb_img: RGB image 480x640
+            depth_img: Depth image 480x640
+        Output:
+            gs: Grasp rectangle [center_x, center_y, width, height, angle]
+            processed depth image 224x224
+        """
+        # center crop the images
         rgb_img = self.center_crop(rgb_img, 224, 224)
         depth_img = self.center_crop(depth_img, 224, 224)
+
         # resize rgb image to 224x224
         # rgb_img = cv2.resize(rgb_img, (224, 224))
         # depth_img = cv2.resize(depth_img, (224, 224))
+
+        # Process the depth image to remove NaN values
         depth_img = self.process_depth_image(depth_img)
 
-        rgb_img = cv2.resize(rgb_img, (224, 224))
-        originalrbg = rgb_img.copy()
-        originaldepth = depth_img.copy()
+        # rgb_img = cv2.resize(rgb_img, (224, 224))
+        originalrbg = rgb_img.copy()              # Save the original rgb image
+        originaldepth = depth_img.copy()          # Save the original depth image
 
         # rgb_img = self.process_rgb_image(rgb_img)
 
@@ -58,11 +73,13 @@ class GRConvNet_Grasp():
         # normalize depth image
         depth_img = np.clip((depth_img - depth_img.mean()), -1, 1)
 
+        # Create the input tensor
         x = np.concatenate(
                     (np.expand_dims(depth_img, 0),
                      rgb_img),
                     0
                 )
+        # x = np.expand_dims(depth_img, 0)
 
         x = torch.from_numpy(x.astype(np.float32)).to(self.device)
 
@@ -70,14 +87,17 @@ class GRConvNet_Grasp():
             x = x.unsqueeze(0)
             output = self.network.predict(x)
 
+        # extract the output
         q_img = output['pos']
         cos_img = output['cos']
         sin_img = output['sin']
         width_img = output['width']
 
+        # post process the output to get the grasp rectangle
         q_img, ang_img, width_img = post_process.post_process_output(q_img, cos_img, sin_img, width_img)
         gs = detect_grasps(q_img, ang_img, width_img=width_img, no_grasps=1)
 
+        # Plot the grasp rectangle on the original image
         ax = plt.subplot(111)
         ax.imshow(originalrbg)
         for g in gs:
@@ -86,6 +106,7 @@ class GRConvNet_Grasp():
         ax.axis('off')
         plt.show()
 
+        # Round off the values
         center_x = round(gs[0].center[0], 5)
         center_y = round(gs[0].center[1], 5)
         width = round(gs[0].width, 5)
@@ -155,19 +176,13 @@ class GRConvNet_Grasp():
         depth_crop = depth_crop[1:-1, 1:-1]
         depth_crop = depth_crop * depth_scale
         # Resize
-        depth_crop = cv2.resize(depth_crop, (224, 224), cv2.INTER_AREA)
+        # depth_crop = cv2.resize(depth_crop, (224, 224), cv2.INTER_AREA)
 
-    # if return_mask:
-    #     with TimeIt('Return Mask'):
-    #         depth_nan_mask = depth_nan_mask[1:-1, 1:-1]
-    #         depth_nan_mask = cv2.resize(depth_nan_mask, (out_size, out_size), cv2.INTER_NEAREST)
-    #     return depth_crop, depth_nan_mask
-    # else:
         return depth_crop
 
     def test_load(self):
-        rgb_img = imread('/home/vishwas/RBE595-vbm/rgb_img.png')
-        depth_img = imread('/home/vishwas/RBE595-vbm/depth_img.png')
+        rgb_img = imread('/home/vishwas/RBE595-vbm/src/grasp_gen_service/grasp_gen_service/cornellds/pcd0100r.png')
+        depth_img = imread('/home/vishwas/RBE595-vbm/src/grasp_gen_service/grasp_gen_service/cornellds/pcd0100d.tiff')
 
         # rgb_img = rgb_img[190:414, 173:173+224]
         # depth_img = depth_img[190:414, 173:173+224]

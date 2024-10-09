@@ -37,14 +37,14 @@ class GGCNN_Grasp():
     def process_data(self, rgb_img, depth_img):
         # cv2.imwrite('rgb_img.png', rgb_img)
         # cv2.imwrite('depth_img.png', depth_img)
-        rgb_img = self.center_crop(rgb_img, 300, 300)
-        depth_img = self.center_crop(depth_img, 300, 300)
+        # rgb_img = self.center_crop(rgb_img, 300, 300)
+        # depth_img = self.center_crop(depth_img, 300, 300)
         # resize rgb image to 224x224
         # rgb_img = cv2.resize(rgb_img, (224, 224))
         # depth_img = cv2.resize(depth_img, (224, 224))
         depth_img = self.process_depth_image(depth_img)
 
-        rgb_img = cv2.resize(rgb_img, (300, 300))
+        # rgb_img = cv2.resize(rgb_img, (300, 300))
         originalrbg = rgb_img.copy()
         originaldepth = depth_img.copy()
 
@@ -157,7 +157,7 @@ class GGCNN_Grasp():
         depth_crop = depth_crop[1:-1, 1:-1]
         depth_crop = depth_crop * depth_scale
         # Resize
-        depth_crop = cv2.resize(depth_crop, (224, 224), cv2.INTER_AREA)
+        # depth_crop = cv2.resize(depth_crop, (224, 224), cv2.INTER_AREA)
 
     # if return_mask:
     #     with TimeIt('Return Mask'):
