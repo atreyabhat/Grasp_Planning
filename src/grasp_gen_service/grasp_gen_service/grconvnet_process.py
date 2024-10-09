@@ -49,8 +49,8 @@ class GRConvNet_Grasp():
             processed depth image 224x224
         """
         # center crop the images
-        rgb_img = self.center_crop(rgb_img, 224, 224)
-        depth_img = self.center_crop(depth_img, 224, 224)
+        # rgb_img = self.center_crop(rgb_img, 224, 224)
+        # depth_img = self.center_crop(depth_img, 224, 224)
 
         # resize rgb image to 224x224
         # rgb_img = cv2.resize(rgb_img, (224, 224))
