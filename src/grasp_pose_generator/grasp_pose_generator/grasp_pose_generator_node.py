@@ -38,7 +38,7 @@ class GraspPoseGenerator(Node):
         self.bridge = CvBridge()
 
         # Camera frame
-        self.camera_frame = 'camera_optical_link'
+        self.camera_frame = 'lens'
 
     def grasp_rect_callback(self, msg):
         self.grasp_rect = msg.data
@@ -62,18 +62,18 @@ class GraspPoseGenerator(Node):
 
         # Ensure depth image is 224x224
         # self.depth_image = cv2.resize(self.depth_image, (224, 224))
-        image_dim, _ = self.depth_image.shape
+        H, W = self.depth_image.shape
 
         self.fx = 554.256
         self.fy = 554.256
-        self.cx = image_dim//2 
-        self.cy = image_dim//2
+        self.cx = H//2
+        self.cy = W//2
 
         # Calculate 3D position
         depth_value = self.depth_image[int(center_y), int(center_x)]
         x = (center_x - self.cx) * depth_value / self.fx
         y = (center_y - self.cy) * depth_value / self.fy
-        z = depth_value
+        z = 1.1 - depth_value
 
         print(x, y, z)
 
