@@ -19,7 +19,7 @@ pcl (sudo apt-get install libpcap-dev, if you face issues with installation)
 1) Build the src
    ```bash
    colcon build --symlink-install
-
+   
 2) Launch the Gazebo:
    ```bash
    ros2 launch vbm_project_env simulation.launch.py
@@ -43,5 +43,3 @@ pcl (sudo apt-get install libpcap-dev, if you face issues with installation)
    or
    ```bash
    ros2 service call /generate_grasp grasp_gen_interface/srv/GraspGen input:\ 'generate_grasp_ggcnn'\
-   
-   
