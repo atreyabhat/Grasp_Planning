@@ -9,6 +9,7 @@ import numpy as np
 from transforms3d import euler
 from cv_bridge import CvBridge
 import cv2
+import matplotlib.pyplot as plt
 
 class GraspPoseGenerator(Node):
     def __init__(self):
@@ -37,7 +38,7 @@ class GraspPoseGenerator(Node):
         self.bridge = CvBridge()
 
         # Camera frame
-        self.camera_frame = 'camera_link_optical'
+        self.camera_frame = 'camera_optical_link'
 
     def grasp_rect_callback(self, msg):
         self.grasp_rect = msg.data
@@ -46,6 +47,8 @@ class GraspPoseGenerator(Node):
 
     def depthImage_callback(self, msg):
         self.depth_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+        plt.imshow(self.depth_image)
+        plt.show()
         self.generate_grasp_pose()
 
     def generate_grasp_pose(self):
@@ -71,6 +74,8 @@ class GraspPoseGenerator(Node):
         x = (center_x - self.cx) * depth_value / self.fx
         y = (center_y - self.cy) * depth_value / self.fy
         z = depth_value
+
+        print(x, y, z)
 
         # Create PoseStamped message
         grasp_pose = PoseStamped()
