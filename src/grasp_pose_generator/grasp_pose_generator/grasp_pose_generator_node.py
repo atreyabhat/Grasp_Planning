@@ -47,8 +47,8 @@ class GraspPoseGenerator(Node):
 
     def depthImage_callback(self, msg):
         self.depth_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
-        plt.imshow(self.depth_image)
-        plt.show()
+        # plt.imshow(self.depth_image)
+        # plt.show()
         self.generate_grasp_pose()
 
     def generate_grasp_pose(self):

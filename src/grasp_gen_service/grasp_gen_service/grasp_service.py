@@ -8,6 +8,7 @@ import numpy as np
 from grasp_gen_interface.srv import GraspGen
 from . import ggcnn_process
 from . import grconvnet_process
+from . import ggcnn2_process
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import matplotlib.pyplot as plt
@@ -40,6 +41,7 @@ class GenerativeGraspService(Node):
         
         self.grconvnet = grconvnet_process.GRConvNet_Grasp()   # Initialize GRConvNet
         self.ggcnn = ggcnn_process.GGCNN_Grasp()               # Initialize GGCNN
+        self.ggcnn2 = ggcnn2_process.GGCNN_Grasp()              # Initialize GGCNN2
         
         self.rgb_image = None
         self.depth_image = None
@@ -73,6 +75,18 @@ class GenerativeGraspService(Node):
 
             # plt.imshow(depth_img_processed)
             # plt.show()
+
+        elif request.input == "generate_grasp_ggcnn2":
+            gs, depth_img_processed = self.ggcnn2.process_data(self.rgb_image, self.depth_image)   # Process data using GGCNN2
+            gs = Float32MultiArray(data=gs)
+            self.get_logger().info('Grasp generated')
+            response.grasp = gs
+            self.grasp_rectangle_publisher.publish(gs)     # Publish grasp rectangle
+            self.depth_image_processed_publisher.publish(self.br.cv2_to_imgmsg(depth_img_processed))   # Publish processed depth image
+        
+        else:
+            self.get_logger().info('Invalid input')
+            response.grasp = Float32MultiArray(data=[0, 0, 0, 0, 0])
 
         return response
     

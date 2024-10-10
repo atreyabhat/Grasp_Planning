@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 class GGCNN_Grasp():
 
     def __init__(self):
-        model_path = '/home/vishwas/RBE595-vbm/src/grasp_gen_service/grasp_gen_service/trained_models/GGCNN/ggcnn/epoch_50_iou_0.94'
+        model_path = '/home/vishwas/RBE595-vbm/src/grasp_gen_service/grasp_gen_service/trained_models/GGCNN/ggcnn2/epoch_50_cornell_ggcnn2'
         self.network = torch.load(model_path)
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.network.to(self.device)
