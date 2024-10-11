@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-
+"""
+This node generates the grasp pose from the grasp rectangle and depth image.
+"""
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
@@ -60,8 +62,6 @@ class GraspPoseGenerator(Node):
         center_x, center_y, width, height, angle = self.grasp_rect
         print(center_x, center_y, width, height, angle)
 
-        # Ensure depth image is 224x224
-        # self.depth_image = cv2.resize(self.depth_image, (224, 224))
         H, W = self.depth_image.shape
 
         self.fx = 554.256
@@ -74,6 +74,11 @@ class GraspPoseGenerator(Node):
         x = (center_x - self.cx) * depth_value / self.fx
         y = (center_y - self.cy) * depth_value / self.fy
         z = 1.1 - depth_value
+
+        #### Use for GRConvNet, comment xyz above ####
+        # y = (center_x - self.cx) * depth_value / self.fx
+        # x = (center_y - self.cy) * depth_value / self.fy
+        # z = 1.1 - depth_value
 
         print(x, y, z)
 

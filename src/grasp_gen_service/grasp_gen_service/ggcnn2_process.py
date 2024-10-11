@@ -1,11 +1,11 @@
-import argparse
-import logging
-import time
+"""
+Bonus Part: Script to load the GGCNN2 model and process the depth image data
+"""
 import os
 import sys
 
-sys.path.append('/home/vishwas/RBE595-vbm/src/grasp_gen_service/grasp_gen_service')
-
+current_dir = os.getcwd() + '/src/grasp_gen_service/grasp_gen_service'
+sys.path.append(current_dir)
 import numpy as np
 import torch.utils.data
 import post_process
@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 class GGCNN_Grasp():
 
     def __init__(self):
-        model_path = '/home/vishwas/RBE595-vbm/src/grasp_gen_service/grasp_gen_service/trained_models/GGCNN/ggcnn2/epoch_50_cornell_ggcnn2'
+        model_path = current_dir + '/trained_models/GGCNN/ggcnn2/epoch_50_cornell_ggcnn2'
         self.network = torch.load(model_path)
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.network.to(self.device)
@@ -35,13 +35,22 @@ class GGCNN_Grasp():
         return img[y1:y2, x1:x2]
 
     def process_data(self, rgb_img, depth_img):
-        # cv2.imwrite('rgb_img.png', rgb_img)
-        # cv2.imwrite('depth_img.png', depth_img)
+        """
+        Process the input data using GRConvNet
+        Input:
+            rgb_img: RGB image 480x640
+            depth_img: Depth image 480x640
+        Output:
+            gs: Grasp rectangle [center_x, center_y, width, height, angle]
+            processed depth image 224x224
+        """
+        
         # rgb_img = self.center_crop(rgb_img, 300, 300)
         # depth_img = self.center_crop(depth_img, 300, 300)
         # resize rgb image to 224x224
         # rgb_img = cv2.resize(rgb_img, (224, 224))
         # depth_img = cv2.resize(depth_img, (224, 224))
+
         depth_img = self.process_depth_image(depth_img)
 
         # rgb_img = cv2.resize(rgb_img, (300, 300))
@@ -77,68 +86,24 @@ class GGCNN_Grasp():
         sin_img = output[2]
         width_img = output[3]
 
-        q_img, ang_img, width_img = post_process.post_process_output(q_img, cos_img, sin_img, width_img)
-        gs = detect_grasps(q_img, ang_img, width_img=width_img, no_grasps=1)
+        q_img, ang_img, width_img = post_process.post_process_output(q_img, cos_img, sin_img, width_img)   # Post process the output
+        gs = detect_grasps(q_img, ang_img, width_img=width_img, no_grasps=1)                            # Detect grasps
 
-        ax = plt.subplot(111)
-        ax.imshow(originalrbg)
-        for g in gs:
-            g.plot(ax)
-        ax.set_title('Grasp')
-        ax.axis('off')
-        plt.show()
-
+        # Round the values
         center_x = round(gs[0].center[0], 5)
         center_y = round(gs[0].center[1], 5)
         width = round(gs[0].width, 5)
         height = round(gs[0].length, 5)
         angle = round(gs[0].angle, 5)
 
-        return [center_x, center_y, width, height, angle], originaldepth
-    
-    def process_rgb_image(self, image_rgb):
-        # Create a mask using the GrabCut algorithm for object segmentation
-        mask = np.zeros(image_rgb.shape[:2], np.uint8)
-
-        # Define a rectangle that roughly includes the object (Coke can)
-        # Values (x, y, width, height) - Adjust based on the image content
-        # rect = (120, 70, 260, 300)
-        rect = (60, 50, 120, 140)
-
-        # Create the background and foreground models (required by GrabCut)
-        bgd_model = np.zeros((1, 65), np.float64)
-        fgd_model = np.zeros((1, 65), np.float64)
-
-        # Apply the GrabCut algorithm
-        cv2.grabCut(image_rgb, mask, rect, bgd_model, fgd_model, 5, cv2.GC_INIT_WITH_RECT)
-
-        # Modify the mask: set sure foreground (1) and probable foreground (3) as 1, else 0
-        mask2 = np.where((mask == 2) | (mask == 0), 0, 1).astype('uint8')
-
-        # Extract the object from the image
-        object_extracted = image_rgb * mask2[:, :, np.newaxis]
-
-        # Create a white background
-        white_background = np.ones_like(image_rgb, dtype=np.uint8) * 255
-
-        # Combine the extracted object with the white background
-        final_image = white_background * (1 - mask2[:, :, np.newaxis]) + object_extracted
-
-        plt.imshow(final_image)
-        plt.title("Object on White Background")
-        plt.axis('off')
-        plt.show()
-
-        return final_image
+        return [center_x, center_y, width, height, angle], originaldepth, gs
     
     def process_depth_image(self, depth, out_size=300, return_mask=False, crop_y_offset=0):
-        # imh, imw = depth.shape
-
-        # print(type(depth))
+        """
+        Process depth image to be fed into the network."""
 
         depth_crop = depth.copy()
-            # Inpaint
-            # OpenCV inpainting does weird things at the border.
+
         depth_crop = cv2.copyMakeBorder(depth_crop, 1, 1, 1, 1, cv2.BORDER_DEFAULT)
         depth_nan_mask = np.isnan(depth_crop).astype(np.uint8)
 
@@ -156,18 +121,12 @@ class GGCNN_Grasp():
         # Back to original size and value range.
         depth_crop = depth_crop[1:-1, 1:-1]
         depth_crop = depth_crop * depth_scale
-        # Resize
-        # depth_crop = cv2.resize(depth_crop, (224, 224), cv2.INTER_AREA)
 
-    # if return_mask:
-    #     with TimeIt('Return Mask'):
-    #         depth_nan_mask = depth_nan_mask[1:-1, 1:-1]
-    #         depth_nan_mask = cv2.resize(depth_nan_mask, (out_size, out_size), cv2.INTER_NEAREST)
-    #     return depth_crop, depth_nan_mask
-    # else:
         return depth_crop
 
     def test_load(self):
+        """
+        Test the model by loading the model and processing the depth image data"""
         rgb_img = imread('/home/vishwas/RBE595-vbm/src/grasp_gen_service/grasp_gen_service/cornellds/pcd0100r.png')
         depth_img = imread('/home/vishwas/RBE595-vbm/src/grasp_gen_service/grasp_gen_service/cornellds/pcd0100d.tiff')
 
